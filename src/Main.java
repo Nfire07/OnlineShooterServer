@@ -162,14 +162,14 @@ class ShooterServer {
                 writer1 = new PrintWriter(client1.getOutputStream(), true);
                 reader1 = new BufferedReader(new InputStreamReader(client1.getInputStream()));
 
-                writer1.println("MAP: " + map);
+                writer1.println("" + map);
                 writer1.println("WAIT!");
 
                 client2 = serverSocket.accept();
                 writer2 = new PrintWriter(client2.getOutputStream(), true);
                 reader2 = new BufferedReader(new InputStreamReader(client2.getInputStream()));
 
-                writer2.println("MAP " + map);
+                writer2.println("" + map);
                 writer2.println("START!");
 
                 Thread t1 = new Thread(() -> passMessages(reader1, writer2, "P1"));
@@ -180,7 +180,6 @@ class ShooterServer {
 
             } catch (IOException e) {
                 if (running) {
-                    e.printStackTrace();
                 }
             }
         });
