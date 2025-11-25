@@ -155,31 +155,57 @@ class ShooterServer {
         this.map = map;
 
         this.serverSocket = new ServerSocket(port);
-
+        
         Thread serverThread = new Thread(() -> {
             try {
                 client1 = serverSocket.accept();
+                GameMap[] gameMaps = new GameMap[2];
                 writer1 = new PrintWriter(client1.getOutputStream(), true);
                 reader1 = new BufferedReader(new InputStreamReader(client1.getInputStream()));
-
+                String nickname1 = reader1.readLine();
+                System.out.println(nickname1);
+                String screenSize1 = reader1.readLine();
+                String[] wh1 = screenSize1.split("x");
+                int width1 = Integer.parseInt(wh1[0]);
+                int height1 = Integer.parseInt(wh1[1]);
+                gameMaps[0] = new GameMap(map, width1, height1);
                 writer1.println("" + map);
-                writer1.println("WAIT!");
+                int[] pos1 = gameMaps[0].getStartingPosition();
+                writer1.println(pos1[0] + ";" + pos1[1]);
 
                 client2 = serverSocket.accept();
                 writer2 = new PrintWriter(client2.getOutputStream(), true);
                 reader2 = new BufferedReader(new InputStreamReader(client2.getInputStream()));
-
+                String nickname2 = reader2.readLine();
+                System.out.println(nickname2);
+                String screenSize2 = reader2.readLine();
+                String[] wh2 = screenSize2.split("x");
+                int width2 = Integer.parseInt(wh2[0]);
+                int height2 = Integer.parseInt(wh2[1]);
+                gameMaps[1] = new GameMap(map, width2, height2);
                 writer2.println("" + map);
-                writer2.println("START!");
+                int[] pos2 = gameMaps[1].getStartingPosition();
+                writer2.println(pos2[0] + ";" + pos2[1]);
 
-                Thread t1 = new Thread(() -> passMessages(reader1, writer2, "P1"));
-                Thread t2 = new Thread(() -> passMessages(reader2, writer1, "P2"));
+                writer1.println("START");
+                writer2.println("START");
+
+                Thread t1 = new Thread(() -> passMessages(reader1, writer2, nickname1));
+                Thread t2 = new Thread(() -> passMessages(reader2, writer1, nickname2));
 
                 t1.start();
                 t2.start();
 
+                while (running) {
+                    Socket extra = serverSocket.accept();
+                    PrintWriter pw = new PrintWriter(extra.getOutputStream(), true);
+                    pw.println("FULL");
+                    extra.close();
+                }
+
             } catch (IOException e) {
                 if (running) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -199,10 +225,6 @@ class ShooterServer {
                 System.out.println(clientName + " disconnected");
             }
         }
-    }
-
-    public int getMap() {
-        return map;
     }
 
     public void stop() {
